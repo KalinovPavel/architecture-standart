@@ -1,0 +1,30 @@
+@startuml Containers
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+
+' ----- АБС -----
+System_Boundary(ABS,"АБС") {
+  Container(PL,"Rates Pkg","PL/SQL","CRUD ставок, валидация XLS")
+  ContainerDb(ORADB,"Oracle DB","Основная БД банка")
+}
+Rel(PL, ORADB, "SQL‑запись / чтение")
+
+' ----- Gateway -----
+System_Boundary(GW,"Deposit‑Gateway") {
+  Container(GWApi,"REST‑API /rates",".NET 6","Возвращает JSON со ставками")
+  Container(GWBatch,"CSV‑экспорт",".NET 6 Worker","Крон‑джоб, 1×/час")
+  ContainerDb(GWCache,"MS SQL Cache","Кэш ставок (TTL 24 ч)")
+}
+
+' ----- Внешняя инфраструктура -----
+System_Ext(SFTP,"SFTP‑сервер","Безопасное файловое хранилище")
+System_Ext(CC,"Система кол‑центра","Java‑микросервисы")
+System_Ext(PCC,"Система партнёрского CC","Внешняя платформа")
+
+' ----- Интеграции -----
+Rel(PL,  GWCache, "Читает ставки (1×/час)")
+Rel(CC,  GWApi,   "HTTPS GET «Получить ставки»")
+Rel(PCC, SFTP,    "SFTP pull «Забрать CSV»")
+Rel(GWApi,   GWCache, "Чтение/запись")
+Rel(GWBatch, GWCache, "Чтение")
+Rel(GWBatch, SFTP,    "SFTP: выгрузка CSV")
+@enduml

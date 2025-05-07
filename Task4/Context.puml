@@ -1,0 +1,20 @@
+@startuml Context
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Context.puml
+Person(opBO,"Сотрудник депозитов")
+Person(opCC,"Оператор кол‑центра")
+Person(opPCC,"Оператор партнёрского CC")
+
+System(ABS,"АБС (Oracle)")
+System(DepGW,"Deposit‑Gateway")
+System(SFTP,"SFTP‑сервер")
+System(CC,"Система кол‑центра")
+System(PCC,"Система партнёрского CC")
+
+Rel(opBO, ABS,  "Загружает/редактирует ставки (XLS)")
+Rel(CC,   DepGW,"HTTPS GET: получить ставки")
+Rel(DepGW,SFTP, "Кладёт CSV‑файл со ставками")
+Rel(PCC,  SFTP, "SFTP pull: забирает CSV")
+Rel(opCC, CC,   "Консультация клиента по телефону")
+Rel(opPCC,PCC,  "Консультация клиента по телефону")
+@enduml
+
